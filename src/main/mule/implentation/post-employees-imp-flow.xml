@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="post-employees-imp-flowFlow" doc:id="ab1db4f1-8413-477e-b0da-2d4107ccbd47" >
+		<logger level="INFO" doc:name="Before hr db" doc:id="1e3eb08a-52a8-45e2-9776-30fe7fd2a310" message='#[%dw 2.0&#10;output application/json&#10;import * from dw::util::Values&#10;---&#10;{&#10;"applicationName": app.name,&#10;"flowName": flow.name,&#10;"source": "hr-app",&#10;"destination": "Database",&#10;"tansactionId": vars.headers.transactionId,&#10;"employeeId": vars.requestPayload.empId,&#10;"requestPayload": vars.requestPayload mask field("empSalary") with "***",&#10;"startTime": vars.startTime,&#10;"tracePoint": now(),&#10;"message": "inserting data"&#10;}]' />
+		<db:insert doc:name="Create employee details in db" doc:id="8b3a90c3-cb09-47f0-adc2-c1a490bf29d9" config-ref="Cloud_Database_Config">
+			<db:sql><![CDATA[insert into EMPLOYEE_INFO values (:emp_id,:emp_name,:emp_status,:emp_designation,:emp_salary);]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+  "emp_id": payload.empId,
+  "emp_name": payload.empName,
+  "emp_status": if(payload.active) "Active" else "Inactive",
+  "emp_designation": payload.empDesignation,
+  "emp_salary": payload.empSalary
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="ab3ed996-9c60-447d-9857-ce0eae1131e8">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	empId: vars.requestPayload.empId,
+	statusCode: 201,
+	message: 'success'
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="After hr db" doc:id="31f103cc-b31e-47fe-9418-1a13ffaa8ab4" message='#[%dw 2.0&#10;output application/json&#10;import * from dw::util::Values&#10;---&#10;{&#10;"applicationName": app.name,&#10;"flowName": flow.name,&#10;"source": "hr-app",&#10;"destination": "Database",&#10;"tansactionId": vars.headers.transactionId,&#10;"employeeId": vars.empId,&#10;"requestPayload": vars.requestPayload mask field("empSalary") with "***",&#10;"startTime": vars.startTime,&#10;"tracePoint": now(),&#10;"message": "successfully created"&#10;}]' />
+		<error-handler ref="common-error-handle" />
+	</flow>
+</mule>

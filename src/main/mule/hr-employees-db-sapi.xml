@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <http:listener-config name="hr-employees-db-sapi-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="hr-employees-db-sapi-config" api="resource::3459d452-dfb3-4112-8a03-2f2324831a0a:hr-db-employee-sapi:1.0.0:raml:zip:hr-employees-db-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="hr-employees-db-sapi-main">
+        <http:listener doc:name="Listener" doc:id="b2dcc878-68d6-4fe6-bed9-6adb0ced97b7" config-ref="hr-employees-db-sapi-httpListenerConfig" path="/api/*">
+            <http:error-response>
+                <http:body><![CDATA[#[{}]]]></http:body>
+            </http:error-response>
+        </http:listener>
+        <ee:transform doc:name="Create initial variables" doc:id="94876b1e-2566-416b-b677-36fe2edc00bb">
+            <ee:message />
+            <ee:variables>
+                <ee:set-variable variableName="headers"><![CDATA[%dw 2.0
+output application/json
+---
+attributes.headers]]></ee:set-variable>
+                <ee:set-variable variableName="queryParams"><![CDATA[%dw 2.0
+output application/json
+---
+attributes.queryParams]]></ee:set-variable>
+                <ee:set-variable variableName="startTime"><![CDATA[%dw 2.0
+output application/json
+---
+now()]]></ee:set-variable>
+                <ee:set-variable variableName="requestPayload"><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <apikit:router config-ref="hr-employees-db-sapi-config" />
+        <error-handler ref="common-error-handle" />
+    </flow>
+    <flow name="post:\employees:application\json:hr-employees-db-sapi-config">
+        <logger level="INFO" doc:name="Start Logger" doc:id="f8ab3659-ef43-4467-8ed9-4554af5d9d01" message="#[%dw 2.0&#xA;output application/json&#xA;import * from dw::util::Values&#xA;---&#xA;{&#xA;&quot;applicationName&quot;: app.name,&#xA;&quot;flowName&quot;: flow.name,&#xA;&quot;source&quot;: &quot;hr-app&quot;,&#xA;&quot;destination&quot;: &quot;Database&quot;,&#xA;&quot;tansactionId&quot;: vars.headers.transactionId,&#xA;&quot;employeeId&quot;: vars.requestPayload.empId,&#xA;&quot;requestPayload&quot;: vars.requestPayload mask field(&quot;empSalary&quot;) with &quot;*****&quot;,&#xA;&quot;startTime&quot;: vars.startTime,&#xA;&quot;tracePoint&quot;: &quot;START&quot;,&#xA;&quot;message&quot;: &quot;post hr employees flow started&quot;&#xA;}]" />
+        <flow-ref doc:name="post-implementation flow" doc:id="3dc1249b-ce6b-4af5-802b-1cf5271bcd1d" name="post-employees-imp-flowFlow" />
+        <logger level="INFO" doc:name="End Logger" doc:id="121ee520-d889-4f8d-9673-76e98e1fd260" message="#[%dw 2.0&#xA;output application/json&#xA;import * from dw::util::Values&#xA;---&#xA;{&#xA;&quot;applicationName&quot;: app.name,&#xA;&quot;flowName&quot;: flow.name,&#xA;&quot;source&quot;: &quot;hr-app&quot;,&#xA;&quot;destination&quot;: &quot;Database&quot;,&#xA;&quot;tansactionId&quot;: vars.headers.transactionId,&#xA;&quot;employeeId&quot;: vars.requestPayload.empId,&#xA;&quot;requestPayload&quot;: vars.requestPayload mask field(&quot;empSalary&quot;) with &quot;*****&quot;,&#xA;&quot;startTime&quot;: vars.startTime,&#xA;&quot;tracePoint&quot;: &quot;START&quot;,&#xA;&quot;message&quot;: &quot;post hr employees flow ended&quot;&#xA;}]" />
+    </flow>
+    <flow name="get:\employees:hr-employees-db-sapi-config">
+        <logger level="INFO" doc:name="Start logger" doc:id="3939c16a-0d0d-4efe-a5c0-de8d2b4c1902" message="#[%dw 2.0&#xA;output application/json&#xA;import * from dw::util::Values&#xA;---&#xA;{&#xA;&quot;applicationName&quot;: app.name,&#xA;&quot;flowName&quot;: flow.name,&#xA;&quot;source&quot;: &quot;hr-app&quot;,&#xA;&quot;destination&quot;: &quot;Database&quot;,&#xA;&quot;tansactionId&quot;: vars.headers.transactionId,&#xA;&quot;requestPayload&quot;: vars.requestPayload mask field(&quot;empSalary&quot;) with &quot;*****&quot;,&#xA;&quot;startTime&quot;: vars.startTime,&#xA;&quot;tracePoint&quot;: &quot;START&quot;,&#xA;&quot;message&quot;: &quot;get hr employees flow started&quot;&#xA;}]" />
+        <ee:transform doc:name="query params vars" doc:id="e6f0b5f1-b91d-44d1-a694-13ca5eb327fe">
+            <ee:message />
+            <ee:variables>
+                <ee:set-variable variableName="status"><![CDATA[%dw 2.0
+output application/json
+---
+attributes.queryParams]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="get-implementation-flow" doc:id="8bada2bc-4dc3-4fd5-bcc0-4295a9bee89e" name="get-employees-imp-flowFlow" />
+        <logger level="INFO" doc:name="End logger" doc:id="83668fea-a8dd-4ef3-9875-a28209ca6d95" message="#[%dw 2.0&#xA;output application/json&#xA;import * from dw::util::Values&#xA;---&#xA;{&#xA;&quot;applicationName&quot;: app.name,&#xA;&quot;flowName&quot;: flow.name,&#xA;&quot;source&quot;: &quot;hr-app&quot;,&#xA;&quot;destination&quot;: &quot;Database&quot;,&#xA;&quot;tansactionId&quot;: vars.headers.transactionId,&#xA;&quot;employeeStatus&quot;: attributes.queryParams.active,&#xA;&quot;requestPayload&quot;: vars.requestPayload mask field(&quot;empSalary&quot;) with &quot;*****&quot;,&#xA;&quot;startTime&quot;: vars.startTime,&#xA;&quot;tracePoint&quot;: &quot;START&quot;,&#xA;&quot;message&quot;: &quot;get hr employees flow ended&quot;&#xA;}]" />
+    </flow>
+    <flow name="get:\(empId):hr-employees-db-sapi-config">
+        <logger level="INFO" doc:name="Start Logger" doc:id="1f4ea5dd-fe11-4ee2-b716-e113e9672ea1" message="#[%dw 2.0&#xA;output application/json&#xA;import * from dw::util::Values&#xA;---&#xA;{&#xA;&quot;applicationName&quot;: app.name,&#xA;&quot;flowName&quot;: flow.name,&#xA;&quot;source&quot;: &quot;hr-app&quot;,&#xA;&quot;destination&quot;: &quot;Database&quot;,&#xA;&quot;tansactionId&quot;: vars.headers.transactionId,&#xA;&quot;employeeId&quot;: vars.uriParams.empId,&#xA;&quot;requestPayload&quot;: vars.requestPayload mask field(&quot;empSalary&quot;) with &quot;*****&quot;,&#xA;&quot;startTime&quot;: vars.startTime,&#xA;&quot;tracePoint&quot;: &quot;START&quot;,&#xA;&quot;message&quot;: &quot;get hr employees flow started&quot;&#xA;}]" />
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="empId"><![CDATA[%dw 2.0
+output application/json
+---
+attributes.uriParams]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="Flow Reference" doc:id="5f956a9e-4670-4900-a240-94589eba5f21" name="get-employees-imp-flowFlow1" />
+        <logger level="INFO" doc:name="End Logger" doc:id="e03b93d0-e3fe-4a2f-827b-f42b747d6e6d" message="#[%dw 2.0&#xA;output application/json&#xA;import * from dw::util::Values&#xA;---&#xA;{&#xA;&quot;applicationName&quot;: app.name,&#xA;&quot;flowName&quot;: flow.name,&#xA;&quot;source&quot;: &quot;hr-app&quot;,&#xA;&quot;destination&quot;: &quot;Database&quot;,&#xA;&quot;tansactionId&quot;: vars.headers.transactionId,&#xA;&quot;employeeId&quot;: vars.uriParams.empId,&#xA;&quot;requestPayload&quot;: vars.requestPayload mask field(&quot;empSalary&quot;) with &quot;*****&quot;,&#xA;&quot;startTime&quot;: vars.startTime,&#xA;&quot;tracePoint&quot;: &quot;START&quot;,&#xA;&quot;message&quot;: &quot;get hr employees flow ended&quot;&#xA;}]" />
+    </flow>
+    <flow name="put:\(empId):application\json:hr-employees-db-sapi-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="empId">attributes.uriParams.'empId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  empId: 100,
+  statusCode: 200,
+  message: "Employee updated successfully"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="delete:\(empId):hr-employees-db-sapi-config">
+        <logger level="INFO" doc:name="Logger" doc:id="297b118b-7a4f-4eb5-b1f2-d2110c4b2bad" message="#[%dw 2.0&#xA;output application/json&#xA;import * from dw::util::Values&#xA;---&#xA;{&#xA;&quot;applicationName&quot;: app.name,&#xA;&quot;flowName&quot;: flow.name,&#xA;&quot;source&quot;: &quot;hr-app&quot;,&#xA;&quot;destination&quot;: &quot;Database&quot;,&#xA;&quot;tansactionId&quot;: vars.headers.transactionId,&#xA;&quot;employeeId&quot;: attributes.uriParams.empId,&#xA;&quot;startTime&quot;: vars.startTime,&#xA;&quot;tracePoint&quot;: &quot;START&quot;,&#xA;&quot;message&quot;: &quot;deleting of hr employees flow started&quot;&#xA;}]" />
+        <ee:transform doc:name="Transform Message" doc:id="54452eab-c25c-47b1-bf09-ce6fc7e3d727">
+            <ee:variables>
+                <ee:set-variable variableName="empId"><![CDATA[%dw 2.0
+output application/json
+---
+attributes.uriParams.empId]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="Flow Reference" doc:id="f4a1a0fa-85db-42e3-87d0-e0ee00c1602f" name="delete-employees-imp-flowFlow" />
+        <logger level="INFO" doc:name="Logger" doc:id="25031593-3508-4cdf-a450-9500b542379e" message="#[%dw 2.0&#xA;output application/json&#xA;import * from dw::util::Values&#xA;---&#xA;{&#xA;&quot;applicationName&quot;: app.name,&#xA;&quot;flowName&quot;: flow.name,&#xA;&quot;source&quot;: &quot;hr-app&quot;,&#xA;&quot;destination&quot;: &quot;Database&quot;,&#xA;&quot;tansactionId&quot;: vars.headers.transactionId,&#xA;&quot;employeeId&quot;: attributes.uriParams.empId,&#xA;&quot;startTime&quot;: vars.startTime,&#xA;&quot;tracePoint&quot;: &quot;START&quot;,&#xA;&quot;message&quot;: &quot;deleting of hr employees flow ended&quot;&#xA;}]" />
+    </flow>
+    <flow name="patch:\(empId):application\json:hr-employees-db-sapi-config">
+        <logger level="INFO" doc:name="Logger" doc:id="314aa84d-b4d0-4c0f-85dc-ab2707ab1705" message="#[%dw 2.0&#xA;output application/json&#xA;import * from dw::util::Values&#xA;---&#xA;{&#xA;&quot;applicationName&quot;: app.name,&#xA;&quot;flowName&quot;: flow.name,&#xA;&quot;source&quot;: &quot;hr-app&quot;,&#xA;&quot;destination&quot;: &quot;Database&quot;,&#xA;&quot;tansactionId&quot;: vars.headers.transactionId,&#xA;&quot;employeeId&quot;: attributes.uriParams.empId,&#xA;&quot;requestPayload&quot;: vars.requestPayload mask field(&quot;empSalary&quot;) with &quot;*****&quot;,&#xA;&quot;startTime&quot;: vars.startTime,&#xA;&quot;tracePoint&quot;: &quot;START&quot;,&#xA;&quot;message&quot;: &quot;updating of hr employees flow started&quot;&#xA;}]" />
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="empId"><![CDATA[%dw 2.0
+output application/json
+---
+attributes.uriParams.empId]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="Flow Reference" doc:id="94b013cd-b0b7-45c2-8622-0f7b260ea750" name="patch-employees-imp-flowFlow" />
+        <logger level="INFO" doc:name="Logger" doc:id="dc3b1bbc-f631-4dc4-b61d-52880dcb06c2" message="#[%dw 2.0&#xA;output application/json&#xA;import * from dw::util::Values&#xA;---&#xA;{&#xA;&quot;applicationName&quot;: app.name,&#xA;&quot;flowName&quot;: flow.name,&#xA;&quot;source&quot;: &quot;hr-app&quot;,&#xA;&quot;destination&quot;: &quot;Database&quot;,&#xA;&quot;tansactionId&quot;: vars.headers.transactionId,&#xA;&quot;employeeId&quot;: attributes.uriParams.empId,&#xA;&quot;requestPayload&quot;: vars.requestPayload mask field(&quot;empSalary&quot;) with &quot;*****&quot;,&#xA;&quot;startTime&quot;: vars.startTime,&#xA;&quot;tracePoint&quot;: &quot;START&quot;,&#xA;&quot;message&quot;: &quot;updating of hr employees flow ended&quot;&#xA;}]" />
+    </flow>
+</mule>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="get-employees-imp-flowFlow" doc:id="739073cf-e665-4cc5-a76f-dee9ad9c6238" >
+		<logger level="INFO" doc:name="Before hr db" doc:id="4632056e-e5ec-407a-99a9-5306b8e12612" message='#[%dw 2.0&#10;output application/json&#10;import * from dw::util::Values&#10;---&#10;{&#10;"applicationName": app.name,&#10;"flowName": flow.name,&#10;"source": "hr-app",&#10;"destination": "Database",&#10;"tansactionId": vars.headers.transactionId,&#10;"employeeStatus": attributes.queryParams.active,&#10;"requestPayload": vars.requestPayload mask field("empSalary") with "***",&#10;"startTime": vars.startTime,&#10;"tracePoint": now(),&#10;"message": "Fetching data"&#10;}]'/>
+		<db:select doc:name="Fetch Active employees" doc:id="701d6864-bba3-4593-8217-3987faf2c708" config-ref="Cloud_Database_Config">
+			<db:sql ><![CDATA[select * from EMPLOYEE_INFO where emp_status = (:empStatus);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+  empStatus: if (vars.status.active == "true") "Active" else "Inactive"
+}]]]></db:input-parameters>
+		</db:select>
+		<logger level="INFO" doc:name="After hr db" doc:id="4bb14ff6-1533-4f01-a10f-84bfc04bd4ec" message='#[%dw 2.0&#10;output application/json&#10;import * from dw::util::Values&#10;---&#10;{&#10;"applicationName": app.name,&#10;"flowName": flow.name,&#10;"source": "hr-app",&#10;"destination": "Database",&#10;"tansactionId": vars.headers.transactionId,&#10;"employeeStatus": attributes.queryParams.active,&#10;"requestPayload": vars.requestPayload mask field("empSalary") with "***",&#10;"startTime": vars.startTime,&#10;"tracePoint": now(),&#10;"message": "fetched the active employees data"&#10;}]'/>
+		<ee:transform doc:name="Final response" doc:id="bf5a5cdf-9507-41d4-bf21-137a93988e68" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="common-error-handle" />
+	</flow>
+	<flow name="get-employees-imp-flowFlow1" doc:id="a5bc76da-e562-4cb3-a581-f04ae478068b" >
+		<logger level="INFO" doc:name="Before hr db" doc:id="a2ed093d-dbf3-46b0-b016-33fc403f584e" message='#[%dw 2.0&#10;output application/json&#10;import * from dw::util::Values&#10;---&#10;{&#10;"applicationName": app.name,&#10;"flowName": flow.name,&#10;"source": "hr-app",&#10;"destination": "Database",&#10;"tansactionId": vars.headers.transactionId,&#10;"employeeId": attributes.uriParams.empId,&#10;"startTime": vars.startTime,&#10;"tracePoint": "START",&#10;"message": "Fetching of hr employees flow initialised"&#10;}]'/>
+		<db:select doc:name="Fetch employees using empId" doc:id="c3cbf5e5-15a3-49ee-82d8-e821332d3c80" config-ref="Cloud_Database_Config" >
+			<db:sql ><![CDATA[select * from EMPLOYEE_INFO where emp_id = (:empId);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"empId": attributes.uriParams.empId,
+}]]]></db:input-parameters>
+		</db:select>
+		<logger level="INFO" doc:name="After hr db" doc:id="af909371-ea6e-4274-ae4d-ec61d00ec7e7" message='#[%dw 2.0&#10;output application/json&#10;import * from dw::util::Values&#10;---&#10;{&#10;"applicationName": app.name,&#10;"flowName": flow.name,&#10;"source": "hr-app",&#10;"destination": "Database",&#10;"tansactionId": vars.headers.transactionId,&#10;"employeeId": attributes.uriParams.empId,&#10;"startTime": vars.startTime,&#10;"tracePoint": "START",&#10;"message": "Fetching of hr employees flow completed"&#10;}]'/>
+		<ee:transform doc:name="Final response" doc:id="3cb50d71-585c-4afb-8319-5c10d17f16a6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="common-error-handle" />
+	</flow>
+</mule>

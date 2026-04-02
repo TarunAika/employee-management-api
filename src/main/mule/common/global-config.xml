@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+	<db:config name="MySQL_Database_Config" doc:name="Database Config" doc:id="7d5bb25a-0034-4533-950e-544040829e9d" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="T@run@ik@123" database="mule" />
+	</db:config>
+	<!-- <api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="ed1a8536-a8a3-4f0f-9a5b-cc2168aeb19e" flowRef="hr-employees-db-sapi-main" />
+	<configuration-properties doc:name="Configuration properties" doc:id="f0baafb6-5b22-4e99-b7eb-74436a0da1e3" file="properties/${mule.env}.yaml" /> -->
+	<db:config name="Cloud_Database_Config" doc:name="Database Config" doc:id="4ea0869b-8927-4a54-b496-d5221335d98e" >
+		<db:my-sql-connection host="mainline.proxy.rlwy.net" port="40688" user="root" password="JNzQSnDJmERjcpQHHqOzyPxzKNBATNEr" database="mule" />
+	</db:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="ee611b33-30e1-48d6-8a2b-96dd38d01756" file="properties/${mule}.yaml" />
+	
+</mule>

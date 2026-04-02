@@ -1,0 +1,9 @@
+%dw 2.0
+
+type auto_ab1db4f1_8413_477e_b0da_2d4107ccbd47_Input_Payload = {
+  empId: Number, 
+  message: String, 
+  statusCode: Number, 
+  _?: Any
+}
+

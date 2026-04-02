@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="patch-employees-imp-flowFlow" doc:id="9c14e11f-98cb-4b77-a386-36787de76496" >
+		<logger level="INFO" doc:name="Before hr db" doc:id="df276bde-effd-4123-a29e-966e07596741" message='#[%dw 2.0&#10;output application/json&#10;import * from dw::util::Values&#10;---&#10;{&#10;"applicationName": app.name,&#10;"flowName": flow.name,&#10;"source": "hr-app",&#10;"destination": "Database",&#10;"tansactionId": vars.headers.transactionId,&#10;"employeeId": attributes.uriParams.empId,&#10;"startTime": vars.startTime,&#10;"tracePoint": "START",&#10;"message": "updating of hr employees flow initialised"&#10;}]'/>
+		<db:update doc:name="Updating the employee details" doc:id="f7c348d8-93fc-404f-be65-1696cd71739a" config-ref="Cloud_Database_Config">
+			<db:sql ><![CDATA[update EMPLOYEE_INFO
+set emp_name = COALESCE(:empName, emp_name),
+    emp_salary = COALESCE(:empSalary, emp_salary),
+    emp_status = COALESCE(:empStatus, emp_status),
+    emp_designation = COALESCE(:empDesignation, emp_designation)  
+where emp_id = :empId;
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+  empId: attributes.uriParams.empId,
+  empName: payload.empName default null,
+  empSalary: payload.empSalary default null,
+  empDesignation: payload.empDesignation default null,
+  empStatus: 
+    if (payload.active) "Active" else "Inactive"
+}]]]></db:input-parameters>
+		</db:update>
+		<logger level="INFO" doc:name="After hr db" doc:id="5426d27b-ba20-4dbe-a35d-0bc4642c3826" message='#[%dw 2.0&#10;output application/json&#10;import * from dw::util::Values&#10;---&#10;{&#10;"applicationName": app.name,&#10;"flowName": flow.name,&#10;"source": "hr-app",&#10;"destination": "Database",&#10;"tansactionId": vars.headers.transactionId,&#10;"employeeId": vars.empId,&#10;"startTime": vars.startTime,&#10;"tracePoint": "START",&#10;"message": "deleting of hr employees flow completed"&#10;}]'/>
+		<ee:transform doc:name="Transform Message" doc:id="c3129e4e-126a-4524-a63c-3a3fa9a6a6d2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	empId: vars.empId,
+	statusCode: 200,
+	message: 'success'
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

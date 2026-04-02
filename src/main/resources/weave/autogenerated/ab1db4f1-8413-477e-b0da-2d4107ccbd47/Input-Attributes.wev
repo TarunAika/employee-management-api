@@ -1,0 +1,28 @@
+%dw 2.0
+
+type auto_ab1db4f1_8413_477e_b0da_2d4107ccbd47_Input_Attributes = {|
+  clientCertificate?: {|
+    publicKey?: {|  |}, 
+    "type"?: String, 
+    encoded?: Binary
+  |}, 
+  headers: {|
+    language: "english", 
+    source: "webapp" | "mobileapp", 
+    transactionId?: String, 
+    corelationId: String
+  |}, 
+  listenerPath: String, 
+  method: String, 
+  queryParams: {|  |}, 
+  queryString: String, 
+  relativePath: String, 
+  remoteAddress: String, 
+  requestPath: String, 
+  requestUri: String, 
+  scheme: String, 
+  uriParams: {|  |}, 
+  version: String, 
+  localAddress: String
+|}
+

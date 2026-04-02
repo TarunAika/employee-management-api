@@ -1,0 +1,10 @@
+%dw 2.0
+
+type auto_9c14e11f_98cb_4b77_a386_36787de76496_Input_Payload = {
+  empDesignation?: String, 
+  empName?: String, 
+  empSalary?: Number, 
+  active?: Boolean, 
+  _?: Any
+}
+
