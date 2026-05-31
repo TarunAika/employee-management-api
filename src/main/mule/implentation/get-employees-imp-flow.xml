@@ -22,7 +22,6 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<error-handler ref="common-error-handle" />
 	</flow>
 	<flow name="get-employees-imp-flowFlow1" doc:id="a5bc76da-e562-4cb3-a581-f04ae478068b" >
 		<logger level="INFO" doc:name="Before hr db" doc:id="a2ed093d-dbf3-46b0-b016-33fc403f584e" message='#[%dw 2.0&#10;output application/json&#10;import * from dw::util::Values&#10;---&#10;{&#10;"applicationName": app.name,&#10;"flowName": flow.name,&#10;"source": "hr-app",&#10;"destination": "Database",&#10;"tansactionId": vars.headers.transactionId,&#10;"employeeId": attributes.uriParams.empId,&#10;"startTime": vars.startTime,&#10;"tracePoint": "START",&#10;"message": "Fetching of hr employees flow initialised"&#10;}]'/>
